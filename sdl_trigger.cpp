@@ -101,7 +101,7 @@ namespace Trigger {
         triggers.push_back(trigger);
     }
 
-    KeyCombination& referenceOf(std::vector<SDL_Keycode> keys) {
+    std::vector<KeyState>& referenceOf(std::vector<SDL_Keycode> keys) {
         for(auto& trigger : triggers) {
             bool matches = true;
 
@@ -117,7 +117,7 @@ namespace Trigger {
                 }
 
                 if (matches) {
-                    return trigger.combination;
+                    return trigger.combination.keys;
                 }
             }
         }
@@ -303,16 +303,7 @@ int main(int argc, char *args[])
     SDL_Event e;
     std::time_t t = std::time(nullptr);
 
-    Trigger::KeyState keyState{SDLK_RETURN, false};
-    Button button1(keyState);
-
-    Trigger::on({SDLK_DOWN}, [&keyState]() {
-        keyState.isDown = true;
-    });
-
-    Trigger::on({SDLK_UP}, [&keyState]() {
-        keyState.isDown = false;
-    });
+    Button button1(Trigger::referenceOf({SDLK_RCTRL, SDLK_a})[0]);
 
     while (running)
     {
