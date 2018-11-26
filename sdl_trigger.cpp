@@ -223,10 +223,8 @@ int main(int argc, char *args[])
                 } break;
 
                 case SDL_KEYUP: {
-                    if (e.key.repeat == 0) {
-                        keyPressLog.push_front(currentTime() + "  [UP] " + SDL_GetKeyName(e.key.keysym.sym));
-                        keyPressLog.resize(KEYPRESS_HISTORY_SIZE);
-                    }
+                    keyPressLog.push_front(currentTime() + " [ UP ] " + SDL_GetKeyName(e.key.keysym.sym));
+                    keyPressLog.resize(KEYPRESS_HISTORY_SIZE);
                 }
 
                 default: break;
@@ -248,6 +246,13 @@ int main(int argc, char *args[])
             SDL_BlitSurface(textSurface, NULL, surface, &r);
             SDL_FreeSurface(textSurface);
         }
+
+        SDL_Surface *clockSurface = TTF_RenderText_Solid(font, currentTime().c_str(), {150, 150, 150});
+        SDL_Rect r;
+        r.x = WIDTH - clockSurface->w - 10;
+        r.y = 10;
+        SDL_BlitSurface(clockSurface, NULL, surface, &r);
+        SDL_FreeSurface(clockSurface);
 
         SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
