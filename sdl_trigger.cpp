@@ -5,9 +5,12 @@
 #include <map>
 #include <functional>
 #include <sstream>
+#include <deque>
+#include <ctime>
+#include <iomanip>
 
-const size_t WIDTH = 500;
-const size_t HEIGHT = 400;
+const size_t WIDTH = 640;
+const size_t HEIGHT = 480;
 
 void DIE(const char *reason)
 {
@@ -104,7 +107,6 @@ namespace Trigger {
         SDL_Keycode key;
 
         if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
-            std::cout << std::endl;
             key = e.key.keysym.sym;
 
             for (auto& trigger : triggers) {
@@ -130,6 +132,14 @@ namespace Trigger {
             }
         }
     }
+}
+
+std::string currentTime() {
+    std::stringstream stream;
+    std::time_t currentTime = std::time(nullptr);
+    std::tm calendarTime = *std::localtime(&currentTime);
+    stream << std::put_time(&calendarTime, "%T");
+    return stream.str();
 }
 
 int main(int argc, char *args[])
@@ -174,7 +184,12 @@ int main(int argc, char *args[])
         std::cout << " --------------------------- COMBO " << std::endl;
     });
 
+    Trigger::on({SDLK_MODE, SDLK_LSHIFT, SDLK_LCTRL}, []() {
+        std::cout << " --------------------------- RECORDING " << std::endl;
+    });
 
+    const size_t KEYPRESS_HISTORY_SIZE = 20;
+    std::deque<std::string> keyPressLog;
 
 
     bool running = true;
@@ -188,7 +203,7 @@ int main(int argc, char *args[])
     });
 
     SDL_Event e;
-    std::stringstream textOnScreen;
+    std::time_t t = std::time(nullptr);
     while (running)
     {
         while (SDL_PollEvent(&e) != 0)
@@ -197,23 +212,20 @@ int main(int argc, char *args[])
             switch (e.type)
             {
                 case SDL_QUIT: {
-                    running = false;
+                    // running = false;
                 } break;
 
                 case SDL_KEYDOWN: {
                     if (e.key.repeat == 0) {
-                        textOnScreen.str("");
-                        textOnScreen.clear();
-                        textOnScreen << "down...: " << SDL_GetKeyName(e.key.keysym.sym);
+                        keyPressLog.push_front(currentTime() + " [DOWN] " + SDL_GetKeyName(e.key.keysym.sym));
+                        keyPressLog.resize(KEYPRESS_HISTORY_SIZE);
                     }
                 } break;
 
                 case SDL_KEYUP: {
-                    if (e.key.repeat == 0)
-                    {
-                        textOnScreen.str("");
-                        textOnScreen.clear();
-                        textOnScreen << "  ...up: " << SDL_GetKeyName(e.key.keysym.sym);
+                    if (e.key.repeat == 0) {
+                        keyPressLog.push_front(currentTime() + "  [UP] " + SDL_GetKeyName(e.key.keysym.sym));
+                        keyPressLog.resize(KEYPRESS_HISTORY_SIZE);
                     }
                 }
 
@@ -222,12 +234,20 @@ int main(int argc, char *args[])
         }
 
         SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
-        SDL_Surface *textSurface = TTF_RenderText_Solid(font, textOnScreen.str().c_str(), {150, 150, 150});
-        SDL_Rect r;
-        r.x = 10;
-        r.y = 10;
-        SDL_BlitSurface(textSurface, NULL, surface, &r);
-        SDL_FreeSurface(textSurface);
+
+        int y = HEIGHT;
+        for(size_t i = 0; i < keyPressLog.size(); i++)
+        {
+            Uint8 lightness = 150 / KEYPRESS_HISTORY_SIZE * (KEYPRESS_HISTORY_SIZE - i);
+            y -= 20;
+
+            SDL_Surface *textSurface = TTF_RenderText_Solid(font, keyPressLog[i].c_str(), {lightness, lightness, lightness});
+            SDL_Rect r;
+            r.x = 10;
+            r.y = y;
+            SDL_BlitSurface(textSurface, NULL, surface, &r);
+            SDL_FreeSurface(textSurface);
+        }
 
         SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
