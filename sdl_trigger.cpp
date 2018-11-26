@@ -198,29 +198,48 @@ struct Button {
     SDL_Surface* surface;
 
     const int BUTTON_PADDING = 10;
-    const int BUTTON_HEIGHT = 15;
+    const int BUTTON_HEIGHT = 10;
+    const int BUTTON_DEPTH = 8;
 
     Button(Trigger::KeyState& keyState) : keyState{keyState}, surface{NULL} {
         // nothing
     }
 
     SDL_Surface* render() {
-        SDL_Surface *labelSurface = TTF_RenderText_Solid(font, SDL_GetKeyName(keyState.key), {150, 150, 150});
+        SDL_Surface *labelSurface = TTF_RenderText_Solid(font, SDL_GetKeyName(keyState.key), {90, 120, 50});
+
+        const int surfaceWitdh = labelSurface->w + 2 * BUTTON_PADDING;
+        const int surfaceHeight = labelSurface->h + 2 * BUTTON_PADDING + BUTTON_HEIGHT;
 
         SDL_FreeSurface(surface);
         surface = Surface::create(labelSurface->w + 2 * BUTTON_PADDING,
                                   labelSurface->h + 2 * BUTTON_PADDING + BUTTON_HEIGHT);
 
-        if (keyState.isDown) {
-            SDL_FillRect(surface, NULL, Surface::colorFor(20, 30, 200));
-        } else {
-            SDL_FillRect(surface, NULL, Surface::colorFor(20, 30, 120));
-        }
+        SDL_Rect facingSideRect;
+        facingSideRect.w = surfaceWitdh;
+        facingSideRect.h = surfaceHeight;
+        facingSideRect.x = 0;
+        facingSideRect.y = (keyState.isDown ? BUTTON_DEPTH : 0);
+        SDL_FillRect(surface, &facingSideRect, Surface::colorFor(120, 150, 70));
 
-        SDL_Rect r;
-        r.x = BUTTON_PADDING;
-        r.y = BUTTON_PADDING;
-        SDL_BlitSurface(labelSurface, NULL, surface, &r);
+        SDL_Rect outlineRect;
+        outlineRect.w = surfaceWitdh - 2;
+        outlineRect.h = labelSurface->h + 2 * BUTTON_PADDING - 2;
+        outlineRect.x = 1;
+        outlineRect.y = (keyState.isDown ? BUTTON_DEPTH : 0) + 1;
+        SDL_FillRect(surface, &outlineRect, Surface::colorFor(230, 250, 180));
+
+        SDL_Rect topRect;
+        topRect.w = surfaceWitdh - 4;
+        topRect.h = surfaceHeight - BUTTON_HEIGHT - 4;
+        topRect.x = 2;
+        topRect.y = (keyState.isDown ? BUTTON_DEPTH : 0) + 2;
+        SDL_FillRect(surface, &topRect, Surface::colorFor(170, 210, 100));
+
+        SDL_Rect labelRect;
+        labelRect.x = BUTTON_PADDING;
+        labelRect.y = BUTTON_PADDING + (keyState.isDown ? BUTTON_DEPTH : 0);
+        SDL_BlitSurface(labelSurface, NULL, surface, &labelRect);
         SDL_FreeSurface(labelSurface);
 
         return surface;/**/
@@ -303,7 +322,7 @@ int main(int argc, char *args[])
             switch (e.type)
             {
                 case SDL_QUIT: {
-                    // running = false;
+                    running = false;
                 } break;
 
                 case SDL_KEYDOWN: {
