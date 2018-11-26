@@ -12,6 +12,8 @@
 const size_t WIDTH = 640;
 const size_t HEIGHT = 480;
 
+TTF_Font* font;
+
 void DIE(const char *reason)
 {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
@@ -94,13 +96,33 @@ namespace Trigger {
 
         Trigger trigger;
         trigger.combination = keyCombination;
-        trigger.action = action;
+        trigger.action = std::move(action);
 
         triggers.push_back(trigger);
     }
 
-    KeyCombination& referenceOf(std::vector<SDL_Keycode>) {
+    KeyCombination& referenceOf(std::vector<SDL_Keycode> keys) {
+        for(auto& trigger : triggers) {
+            bool matches = true;
 
+            if (trigger.combination.keys.size() != keys.size()) {
+                matches = false;
+            }
+
+            if (matches) {
+                for (size_t i = 0; i < keys.size(); i++) {
+                    if (trigger.combination.keys[i].key != keys[i]) {
+                        matches = false;
+                    }
+                }
+
+                if (matches) {
+                    return trigger.combination;
+                }
+            }
+        }
+
+        throw std::runtime_error("::referenceOf error");
     }
 
     void processEvent(SDL_Event& e) {
@@ -142,6 +164,72 @@ std::string currentTime() {
     return stream.str();
 }
 
+struct Surface {
+    static SDL_Surface* etalon;
+
+    static void setEtalon(SDL_Surface* surface) {
+        etalon = surface;
+    }
+
+    static SDL_Surface* create(int width, int height) {
+        if (etalon == nullptr) {
+            throw std::runtime_error("Surface::etalon not set!");
+        }
+
+        SDL_Surface* newSurface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+        SDL_Surface* optimizedSurface = SDL_ConvertSurface(newSurface, etalon->format, 0);
+        SDL_FreeSurface(newSurface);
+
+        return optimizedSurface;
+    }
+
+    static int colorFor(int r, int g, int b) {
+        if (etalon == nullptr) {
+            throw std::runtime_error("Surface::etalon not set!");
+        }
+
+        return SDL_MapRGB(etalon->format, r, g, b);
+    }
+};
+SDL_Surface* Surface::etalon = nullptr;
+
+struct Button {
+    Trigger::KeyState& keyState;
+    SDL_Surface* surface;
+
+    const int BUTTON_PADDING = 10;
+    const int BUTTON_HEIGHT = 15;
+
+    Button(Trigger::KeyState& keyState) : keyState{keyState}, surface{NULL} {
+        // nothing
+    }
+
+    SDL_Surface* render() {
+        SDL_Surface *labelSurface = TTF_RenderText_Solid(font, SDL_GetKeyName(keyState.key), {150, 150, 150});
+
+        SDL_FreeSurface(surface);
+        surface = Surface::create(labelSurface->w + 2 * BUTTON_PADDING,
+                                  labelSurface->h + 2 * BUTTON_PADDING + BUTTON_HEIGHT);
+
+        if (keyState.isDown) {
+            SDL_FillRect(surface, NULL, Surface::colorFor(20, 30, 200));
+        } else {
+            SDL_FillRect(surface, NULL, Surface::colorFor(20, 30, 120));
+        }
+
+        SDL_Rect r;
+        r.x = BUTTON_PADDING;
+        r.y = BUTTON_PADDING;
+        SDL_BlitSurface(labelSurface, NULL, surface, &r);
+        SDL_FreeSurface(labelSurface);
+
+        return surface;/**/
+        // SDL_FreeSurface(surface);
+        // surface = TTF_RenderText_Solid(font, SDL_GetKeyName(SDLK_RETURN), {150, 150, 150});
+        // return surface;
+    }
+};
+
 int main(int argc, char *args[])
 {
     srand(time(NULL));
@@ -152,27 +240,17 @@ int main(int argc, char *args[])
     atexit(SDL_Quit);
 
     SDL_Window *window;
-    SDL_Renderer *renderer;
-    SDL_Texture *texture;
     SDL_Surface *surface;
 
-    SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_SHOWN, &window, &renderer);
+    window = SDL_CreateWindow("SDL_Trigger Visual Demo", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+    surface = SDL_GetWindowSurface(window);
+    Surface::setEtalon(surface);
 
-    texture = SDL_CreateTexture(renderer,
-                                SDL_PIXELFORMAT_ARGB8888,
-                                SDL_TEXTUREACCESS_STREAMING,
-                                WIDTH, HEIGHT);
-
-    surface = SDL_CreateRGBSurface(0, WIDTH, HEIGHT, 32,
-                                   0x00FF0000,
-                                   0x0000FF00,
-                                   0x000000FF,
-                                   0xFF000000);
     // SDL_ShowCursor(SDL_DISABLE);
     // SDL_WarpMouseInWindow(window, WIDTH / 2, HEIGHT / 2);
     SDL_RaiseWindow(window);
 
-    TTF_Font *font = TTF_OpenFont("./cft.ttf", 16);
+    font = TTF_OpenFont("./cft.ttf", 16);
     if (font == NULL)
         DIE(TTF_GetError());
 
@@ -187,6 +265,7 @@ int main(int argc, char *args[])
     Trigger::on({SDLK_MODE, SDLK_LSHIFT, SDLK_LCTRL}, []() {
         std::cout << " --------------------------- RECORDING " << std::endl;
     });
+
 
     const size_t KEYPRESS_HISTORY_SIZE = 20;
     std::deque<std::string> keyPressLog;
@@ -204,6 +283,18 @@ int main(int argc, char *args[])
 
     SDL_Event e;
     std::time_t t = std::time(nullptr);
+
+    Trigger::KeyState keyState{SDLK_RETURN, false};
+    Button button1(keyState);
+
+    Trigger::on({SDLK_DOWN}, [&keyState]() {
+        keyState.isDown = true;
+    });
+
+    Trigger::on({SDLK_UP}, [&keyState]() {
+        keyState.isDown = false;
+    });
+
     while (running)
     {
         while (SDL_PollEvent(&e) != 0)
@@ -231,7 +322,7 @@ int main(int argc, char *args[])
             }
         }
 
-        SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
+        SDL_FillRect(surface, NULL, Surface::colorFor(0, 0, 0));
 
         int y = HEIGHT;
         for(size_t i = 0; i < keyPressLog.size(); i++)
@@ -254,12 +345,18 @@ int main(int argc, char *args[])
         SDL_BlitSurface(clockSurface, NULL, surface, &r);
         SDL_FreeSurface(clockSurface);
 
-        SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
+        SDL_Rect r2;
+        r2.x = 10;
+        r2.y = 10;
+        SDL_BlitSurface(button1.render(), NULL, surface, &r2);
+
+        SDL_UpdateWindowSurface(window);
 
         SDL_Delay(1);
     }
+
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 
     return 0;
 }
