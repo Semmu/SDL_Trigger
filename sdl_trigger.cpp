@@ -96,7 +96,7 @@ namespace Trigger {
 
         Trigger trigger;
         trigger.combination = keyCombination;
-        trigger.action = std::move(action);
+        trigger.action = action;
 
         triggers.push_back(trigger);
     }
@@ -122,7 +122,7 @@ namespace Trigger {
             }
         }
 
-        throw std::runtime_error("::referenceOf error");
+        throw std::runtime_error("Trigger::referenceOf error, combination not found!");
     }
 
     void processEvent(SDL_Event& e) {
@@ -193,20 +193,28 @@ struct Surface {
 };
 SDL_Surface* Surface::etalon = nullptr;
 
-struct Button {
-    Trigger::KeyState& keyState;
+struct VisibleButton {
+    Trigger::KeyState* keyState;
     SDL_Surface* surface;
 
     const int BUTTON_PADDING = 10;
     const int BUTTON_HEIGHT = 10;
-    const int BUTTON_DEPTH = 8;
+    const int BUTTON_DEPTH = 7;
 
-    Button(Trigger::KeyState& keyState) : keyState{keyState}, surface{NULL} {
-        // nothing
+    VisibleButton() : keyState{NULL}, surface{NULL} {
+        //
+    }
+
+    void setKeyStatePtr(Trigger::KeyState* newKeyState) {
+        keyState = newKeyState;
     }
 
     SDL_Surface* render() {
-        SDL_Surface *labelSurface = TTF_RenderText_Solid(font, SDL_GetKeyName(keyState.key), {90, 120, 50});
+
+        SDL_Surface *labelSurface = TTF_RenderText_Solid(font, SDL_GetKeyName(keyState->key), {90, 120, 50});
+        if (labelSurface == NULL) {
+            throw std::runtime_error("Could not render label!");
+        }
 
         const int surfaceWitdh = labelSurface->w + 2 * BUTTON_PADDING;
         const int surfaceHeight = labelSurface->h + 2 * BUTTON_PADDING + BUTTON_HEIGHT;
@@ -219,33 +227,86 @@ struct Button {
         facingSideRect.w = surfaceWitdh;
         facingSideRect.h = surfaceHeight;
         facingSideRect.x = 0;
-        facingSideRect.y = (keyState.isDown ? BUTTON_DEPTH : 0);
+        facingSideRect.y = (keyState->isDown ? BUTTON_DEPTH : 0);
         SDL_FillRect(surface, &facingSideRect, Surface::colorFor(120, 150, 70));
 
         SDL_Rect outlineRect;
         outlineRect.w = surfaceWitdh - 2;
         outlineRect.h = labelSurface->h + 2 * BUTTON_PADDING - 2;
         outlineRect.x = 1;
-        outlineRect.y = (keyState.isDown ? BUTTON_DEPTH : 0) + 1;
+        outlineRect.y = (keyState->isDown ? BUTTON_DEPTH : 0) + 1;
         SDL_FillRect(surface, &outlineRect, Surface::colorFor(230, 250, 180));
 
         SDL_Rect topRect;
         topRect.w = surfaceWitdh - 4;
         topRect.h = surfaceHeight - BUTTON_HEIGHT - 4;
         topRect.x = 2;
-        topRect.y = (keyState.isDown ? BUTTON_DEPTH : 0) + 2;
+        topRect.y = (keyState->isDown ? BUTTON_DEPTH : 0) + 2;
         SDL_FillRect(surface, &topRect, Surface::colorFor(170, 210, 100));
 
         SDL_Rect labelRect;
         labelRect.x = BUTTON_PADDING;
-        labelRect.y = BUTTON_PADDING + (keyState.isDown ? BUTTON_DEPTH : 0);
+        labelRect.y = BUTTON_PADDING + (keyState->isDown ? BUTTON_DEPTH : 0);
         SDL_BlitSurface(labelSurface, NULL, surface, &labelRect);
         SDL_FreeSurface(labelSurface);
 
-        return surface;/**/
-        // SDL_FreeSurface(surface);
-        // surface = TTF_RenderText_Solid(font, SDL_GetKeyName(SDLK_RETURN), {150, 150, 150});
-        // return surface;
+        return surface;
+    }
+};
+
+struct VisibleCombination {
+    std::string description;
+    std::vector<SDL_Keycode> keys;
+    std::vector<VisibleButton> buttons;
+    SDL_Surface *surface;
+
+    const int BUTTON_DISTANCE = 10;
+
+    VisibleCombination(std::string description, std::vector<SDL_Keycode> keys, Trigger::Action action) : description{description}, keys{keys}, buttons{}, surface{NULL} {
+
+        Trigger::on(keys, action);
+
+        for(size_t i = 0; i < keys.size(); i++) {
+            buttons.push_back(VisibleButton());
+        }
+    }
+
+    SDL_Surface* render() {
+        SDL_Surface *descriptionSurface = TTF_RenderText_Solid(font, description.c_str(), {150, 150, 150});
+        for(size_t i = 0; i < buttons.size(); i++) {
+            buttons[i].setKeyStatePtr(&Trigger::referenceOf(keys)[i]);
+            buttons[i].render();
+        }
+
+        int height = descriptionSurface->h + BUTTON_DISTANCE + buttons[0].surface->h;
+        int width = -BUTTON_DISTANCE;
+        for (auto& button : buttons) {
+            width += button.surface->w + BUTTON_DISTANCE;
+        }
+
+        SDL_FreeSurface(surface);
+        surface = Surface::create(width, height);
+
+        SDL_Rect descriptionRect;
+        descriptionRect.x = 0;
+        descriptionRect.y = 0;
+        descriptionRect.w = descriptionSurface->w;
+        descriptionRect.h = descriptionSurface->h;
+        SDL_BlitSurface(descriptionSurface, NULL, surface, &descriptionRect);
+        SDL_FreeSurface(descriptionSurface);
+
+        SDL_Rect buttonRect;
+        buttonRect.x = 0;
+        buttonRect.y = descriptionSurface->h + BUTTON_DISTANCE;
+        for (auto& button : buttons) {
+            buttonRect.w = button.surface->w;
+            buttonRect.h = button.surface->h;
+
+            SDL_BlitSurface(button.render(), NULL, surface, &buttonRect);
+            buttonRect.x += button.surface->w + BUTTON_DISTANCE;
+        }
+
+        return surface;
     }
 };
 
@@ -265,9 +326,9 @@ int main(int argc, char *args[])
     surface = SDL_GetWindowSurface(window);
     Surface::setEtalon(surface);
 
-    // SDL_ShowCursor(SDL_DISABLE);
-    // SDL_WarpMouseInWindow(window, WIDTH / 2, HEIGHT / 2);
-    SDL_RaiseWindow(window);
+    SDL_ShowCursor(SDL_DISABLE);
+    SDL_WarpMouseInWindow(window, WIDTH / 2, HEIGHT / 2);
+    // SDL_RaiseWindow(window);
 
     font = TTF_OpenFont("./cft.ttf", 16);
     if (font == NULL)
@@ -277,20 +338,21 @@ int main(int argc, char *args[])
         std::cout << " --------------------------- RIGHT SHIFT" << std::endl;
     });
 
-    Trigger::on({SDLK_RCTRL, SDLK_a}, []() {
-        std::cout << " --------------------------- COMBO " << std::endl;
-    });
 
-    Trigger::on({SDLK_MODE, SDLK_LSHIFT, SDLK_LCTRL}, []() {
+    bool running = true;
+
+
+    std::vector<VisibleCombination> visibleCombinations;
+    visibleCombinations.push_back(VisibleCombination("Screen recording buttons", {SDLK_MODE, SDLK_LSHIFT, SDLK_LCTRL}, []() {
         std::cout << " --------------------------- RECORDING " << std::endl;
-    });
+    }));
 
+    visibleCombinations.push_back(VisibleCombination("Select All", {SDLK_RCTRL, SDLK_a}, []() {
+        std::cout << " select all" << std::endl;
+    }));
 
     const size_t KEYPRESS_HISTORY_SIZE = 20;
     std::deque<std::string> keyPressLog;
-
-
-    bool running = true;
 
     Trigger::on({SDLK_q}, [&running]() {
         running = false;
@@ -303,7 +365,6 @@ int main(int argc, char *args[])
     SDL_Event e;
     std::time_t t = std::time(nullptr);
 
-    Button button1(Trigger::referenceOf({SDLK_RCTRL, SDLK_a})[0]);
 
     while (running)
     {
@@ -355,10 +416,14 @@ int main(int argc, char *args[])
         SDL_BlitSurface(clockSurface, NULL, surface, &r);
         SDL_FreeSurface(clockSurface);
 
-        SDL_Rect r2;
-        r2.x = 10;
-        r2.y = 10;
-        SDL_BlitSurface(button1.render(), NULL, surface, &r2);
+        SDL_Rect visibleCombinationRect;
+        visibleCombinationRect.x = 10;
+        visibleCombinationRect.y = 10;
+        for (auto& visibleCombination : visibleCombinations) {
+            SDL_BlitSurface(visibleCombination.render(), NULL, surface, &visibleCombinationRect);
+
+            visibleCombinationRect.y += visibleCombination.surface->h + 20;
+        }
 
         SDL_UpdateWindowSurface(window);
 
