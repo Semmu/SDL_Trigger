@@ -293,7 +293,6 @@ struct VisibleCombination {
         descriptionRect.w = descriptionSurface->w;
         descriptionRect.h = descriptionSurface->h;
         SDL_BlitSurface(descriptionSurface, NULL, surface, &descriptionRect);
-        SDL_FreeSurface(descriptionSurface);
 
         SDL_Rect buttonRect;
         buttonRect.x = 0;
@@ -306,6 +305,7 @@ struct VisibleCombination {
             buttonRect.x += button.surface->w + BUTTON_DISTANCE;
         }
 
+        SDL_FreeSurface(descriptionSurface);
         return surface;
     }
 };
