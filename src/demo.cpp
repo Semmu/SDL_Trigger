@@ -1,7 +1,7 @@
 #include <iostream>
 #include "util.h"
 #include "sdl_trigger.h"
-#include <SDL2/SDL_ttf.h>
+#include "graphics.h"
 
 const size_t WIDTH = 640;
 const size_t HEIGHT = 480;
@@ -50,6 +50,19 @@ int main(int argc, char const *argv[])
 
     Trigger::on({SDLK_ESCAPE}, [&running]() {
         running = false;
+    });
+
+
+    Trigger::KeyState ks1{SDLK_RETURN, false};
+    Button b1;
+    b1.setKeyStatePtr(&ks1);
+
+    Trigger::on({SDLK_DOWN}, [&ks1]() {
+        ks1.isDown = true;
+    });
+
+    Trigger::on({SDLK_UP}, [&ks1]() {
+        ks1.isDown = false;
     });
 
     while (running)
@@ -104,6 +117,10 @@ int main(int argc, char const *argv[])
         clockRect.y = 10;
         SDL_BlitSurface(clockSurface, NULL, surface, &clockRect);
         SDL_FreeSurface(clockSurface);
+
+        clockRect.x = 20;
+        clockRect.y = 20;
+        SDL_BlitSurface(b1.render(), NULL, surface, &clockRect);
 
         SDL_UpdateWindowSurface(window);
 
