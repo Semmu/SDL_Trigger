@@ -52,11 +52,26 @@ int main(int argc, char const *argv[])
         running = false;
     });
 
-    Trigger::on({SDLK_LCTRL, SDLK_a}, [](){
-        std::cout << "select all" << std::endl;
+    Trigger::on({SDLK_RCTRL, SDLK_a}, [](){
     });
 
-    Combination c1("Select All", {SDLK_LCTRL, SDLK_a});
+    Trigger::on({SDLK_UP}, [](){
+    });
+
+    Trigger::on({SDLK_RIGHT}, []() {
+    });
+
+    Trigger::on({SDLK_DOWN}, []() {
+    });
+
+    Trigger::on({SDLK_LEFT}, []() {
+    });
+
+    combinations.push_back(Combination("Select All", {SDLK_RCTRL, SDLK_a}));
+    combinations.push_back(Combination("Move Up", {SDLK_UP}));
+    combinations.push_back(Combination("Move Right", {SDLK_RIGHT}));
+    combinations.push_back(Combination("Move Down", {SDLK_DOWN}));
+    combinations.push_back(Combination("Move Left", {SDLK_LEFT}));
 
     while (running)
     {
@@ -111,9 +126,14 @@ int main(int argc, char const *argv[])
         SDL_BlitSurface(clockSurface, NULL, surface, &clockRect);
         SDL_FreeSurface(clockSurface);
 
-        clockRect.x = 10;
+        SDL_Rect combinationRect;
+        combinationRect.x = 10;
+        combinationRect.y = 10;
+        for (auto &combination : combinations) {
+            SDL_BlitSurface(combination.render(), NULL, surface, &combinationRect);
 
-        SDL_BlitSurface(c1.render(), NULL, surface, &clockRect);
+            combinationRect.y += combination.surface->h + 30;
+        }
 
         SDL_UpdateWindowSurface(window);
 

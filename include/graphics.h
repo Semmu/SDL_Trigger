@@ -34,4 +34,6 @@ struct Combination {
     SDL_Surface* render();
 };
 
+extern std::vector<Combination> combinations;
+
 #endif /* GRAPHICS_H */

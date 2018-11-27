@@ -84,6 +84,8 @@ SDL_Surface* Button::render() {
     return surface;
 }
 
+std::vector<Combination> combinations;
+
 Combination::Combination(std::string description, std::vector<SDL_Keycode> keys) : description{description}, buttons{}, surface{NULL} {
     for (size_t i = 0; i < keys.size(); i++) {
         buttons.push_back(Button(keys, i));
@@ -101,6 +103,8 @@ SDL_Surface* Combination::render() {
     for (auto& button : buttons) {
         width += button.surface->w + BUTTON_DISTANCE;
     }
+
+    width = (width > descriptionSurface->w ? width : descriptionSurface->w);
 
     SDL_FreeSurface(surface);
     surface = Surface::create(width, height);
