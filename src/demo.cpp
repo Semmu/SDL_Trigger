@@ -72,6 +72,8 @@ int main(int argc, char const *argv[])
     combinations.push_back(Combination("Move Right", {SDLK_RIGHT}));
     combinations.push_back(Combination("Move Down", {SDLK_DOWN}));
     combinations.push_back(Combination("Move Left", {SDLK_LEFT}));
+    combinations.push_back(Combination("Close This Demo", {SDLK_q}));
+    combinations.push_back(Combination("Close This Demo", {SDLK_ESCAPE}));
 
     while (running)
     {
@@ -106,7 +108,7 @@ int main(int argc, char const *argv[])
 
             recordY -= 20;
 
-            Uint8 color = 150 / KeyPressLog::maxRecords * (KeyPressLog::maxRecords - i);
+            Uint8 color = 100 / KeyPressLog::maxRecords * (KeyPressLog::maxRecords - i);
             SDL_Surface* recordSurface = Surface::ofText(record.c_str(), {color, color, color});
 
             SDL_Rect recordRect;
@@ -132,7 +134,7 @@ int main(int argc, char const *argv[])
         for (auto &combination : combinations) {
             SDL_BlitSurface(combination.render(), NULL, surface, &combinationRect);
 
-            combinationRect.y += combination.surface->h + 30;
+            combinationRect.y += combination.surface->h + 10;
         }
 
         SDL_UpdateWindowSurface(window);

@@ -21,6 +21,7 @@ void fatal(const char *reason) {
 
 void Surface::setFormat(SDL_PixelFormat* newFormat) {
     format = newFormat;
+    COLOR_TRANSPARENT = SDL_MapRGB(format, 255, 255, 0);
 }
 
 void Surface::setFont(TTF_Font* newFont) {
@@ -35,6 +36,9 @@ SDL_Surface* Surface::create(int width, int height) {
     SDL_Surface* newSurface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
     SDL_Surface* optimizedSurface = SDL_ConvertSurface(newSurface, format, 0);
     SDL_FreeSurface(newSurface);
+
+    SDL_FillRect(optimizedSurface, NULL, COLOR_TRANSPARENT);
+    SDL_SetColorKey(optimizedSurface, SDL_ENABLE, COLOR_TRANSPARENT);
 
     return optimizedSurface;
 }
@@ -65,9 +69,10 @@ SDL_Surface* Surface::ofText(const char* string, SDL_Color color) {
 
 SDL_PixelFormat* Surface::format = NULL;
 TTF_Font* Surface::font = NULL;
+int Surface::COLOR_TRANSPARENT = 0;
 
 std::list<std::string> KeyPressLog::records;
-int KeyPressLog::maxRecords = 20;
+int KeyPressLog::maxRecords = 15;
 
 void KeyPressLog::insert(std::string record) {
     records.push_front(record);

@@ -98,27 +98,23 @@ SDL_Surface* Combination::render() {
         buttons[i].render();
     }
 
-    int height = descriptionSurface->h + BUTTON_DISTANCE + buttons[0].surface->h;
-    int width = -BUTTON_DISTANCE;
+    int height = buttons[0].surface->h;
+    int width = DESCRIPTION_WIDTH + BUTTON_DISTANCE;
     for (auto& button : buttons) {
         width += button.surface->w + BUTTON_DISTANCE;
     }
-
-    width = (width > descriptionSurface->w ? width : descriptionSurface->w);
 
     SDL_FreeSurface(surface);
     surface = Surface::create(width, height);
 
     SDL_Rect descriptionRect;
-    descriptionRect.x = 0;
-    descriptionRect.y = 0;
-    descriptionRect.w = descriptionSurface->w;
-    descriptionRect.h = descriptionSurface->h;
+    descriptionRect.x = (DESCRIPTION_WIDTH - descriptionSurface->w) - BUTTON_DISTANCE;
+    descriptionRect.y = (height - descriptionSurface->h) / 2;
     SDL_BlitSurface(descriptionSurface, NULL, surface, &descriptionRect);
 
     SDL_Rect buttonRect;
-    buttonRect.x = 0;
-    buttonRect.y = descriptionSurface->h + BUTTON_DISTANCE;
+    buttonRect.x = DESCRIPTION_WIDTH;
+    buttonRect.y = 0;
     for (auto& button : buttons) {
         buttonRect.w = button.surface->w;
         buttonRect.h = button.surface->h;

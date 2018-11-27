@@ -28,6 +28,7 @@ struct Combination {
     std::vector<Button> buttons;
     SDL_Surface *surface;
 
+    const int DESCRIPTION_WIDTH = 150;
     const int BUTTON_DISTANCE = 10;
 
     Combination(std::string description, std::vector<SDL_Keycode> keys);

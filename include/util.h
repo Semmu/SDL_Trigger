@@ -14,6 +14,8 @@ struct Surface {
     static SDL_PixelFormat* format;
     static TTF_Font* font;
 
+    static int COLOR_TRANSPARENT;
+
     static void setFormat(SDL_PixelFormat* format);
     static void setFont(TTF_Font* font);
 
