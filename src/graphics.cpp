@@ -1,14 +1,46 @@
 #include "graphics.h"
 #include "util.h"
 
-void Button::setKeyStatePtr(Trigger::KeyState* newKeyState) {
-    keyState = newKeyState;
+Button::Button(std::vector<SDL_Keycode> keys, size_t index) : keys{keys}, index{index} {
+    //
+}
+
+Button Button::forCombinationKey(std::vector<SDL_Keycode> keys, size_t index) {
+
+    if (!(index < keys.size())) {
+        throw std::runtime_error("Key combination index too big while creating Button!");
+    }
+
+    Button button(keys, index);
+
+    button.findKeyState();
+
+    return button;
+}
+
+void Button::findKeyState() {
+    for(auto& trigger : Trigger::triggers) {
+        if (trigger.combination.keys.size() == keys.size()) {
+            bool matches = true;
+            for (size_t i = 0; i < keys.size(); i++) {
+                if (trigger.combination.keys[i].key != keys[i]) {
+                    matches = false;
+                }
+            }
+
+            if (matches) {
+                keyState = &trigger.combination.keys[index];
+                return;
+            }
+        }
+    }
+
+    throw std::runtime_error("Button couldn't find corresponding key combination in Trigger::triggers!");
 }
 
 SDL_Surface* Button::render() {
-    if (keyState == NULL) {
-        throw std::runtime_error("Button::keyState points to NULL, can't render!");
-    }
+
+    findKeyState();
 
     SDL_Surface* labelSurface = Surface::ofText(SDL_GetKeyName(keyState->key), {90, 120, 50});
     if (labelSurface == NULL) {
@@ -49,5 +81,48 @@ SDL_Surface* Button::render() {
     SDL_BlitSurface(labelSurface, NULL, surface, &labelRect);
     SDL_FreeSurface(labelSurface);
 
+    return surface;
+}
+
+Combination::Combination(std::string description, std::vector<SDL_Keycode> keys) : description{description}, buttons{}, surface{NULL} {
+    for (size_t i = 0; i < keys.size(); i++) {
+        buttons.push_back(Button(keys, i));
+    }
+}
+
+SDL_Surface* Combination::render() {
+    SDL_Surface *descriptionSurface = Surface::ofText(description.c_str());
+    for(size_t i = 0; i < buttons.size(); i++) {
+        buttons[i].render();
+    }
+
+    int height = descriptionSurface->h + BUTTON_DISTANCE + buttons[0].surface->h;
+    int width = -BUTTON_DISTANCE;
+    for (auto& button : buttons) {
+        width += button.surface->w + BUTTON_DISTANCE;
+    }
+
+    SDL_FreeSurface(surface);
+    surface = Surface::create(width, height);
+
+    SDL_Rect descriptionRect;
+    descriptionRect.x = 0;
+    descriptionRect.y = 0;
+    descriptionRect.w = descriptionSurface->w;
+    descriptionRect.h = descriptionSurface->h;
+    SDL_BlitSurface(descriptionSurface, NULL, surface, &descriptionRect);
+
+    SDL_Rect buttonRect;
+    buttonRect.x = 0;
+    buttonRect.y = descriptionSurface->h + BUTTON_DISTANCE;
+    for (auto& button : buttons) {
+        buttonRect.w = button.surface->w;
+        buttonRect.h = button.surface->h;
+
+        SDL_BlitSurface(button.render(), NULL, surface, &buttonRect);
+        buttonRect.x += button.surface->w + BUTTON_DISTANCE;
+    }
+
+    SDL_FreeSurface(descriptionSurface);
     return surface;
 }

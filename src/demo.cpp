@@ -52,18 +52,11 @@ int main(int argc, char const *argv[])
         running = false;
     });
 
-
-    Trigger::KeyState ks1{SDLK_RETURN, false};
-    Button b1;
-    b1.setKeyStatePtr(&ks1);
-
-    Trigger::on({SDLK_DOWN}, [&ks1]() {
-        ks1.isDown = true;
+    Trigger::on({SDLK_LCTRL, SDLK_a}, [](){
+        std::cout << "select all" << std::endl;
     });
 
-    Trigger::on({SDLK_UP}, [&ks1]() {
-        ks1.isDown = false;
-    });
+    Combination c1("Select All", {SDLK_LCTRL, SDLK_a});
 
     while (running)
     {
@@ -111,16 +104,16 @@ int main(int argc, char const *argv[])
             i++;
         }
 
-        SDL_Surface *clockSurface = Surface::ofText(currentTime().c_str(), {150, 150, 150});
+        SDL_Surface *clockSurface = Surface::ofText(currentTime().c_str());
         SDL_Rect clockRect;
         clockRect.x = WIDTH - clockSurface->w - 10;
         clockRect.y = 10;
         SDL_BlitSurface(clockSurface, NULL, surface, &clockRect);
         SDL_FreeSurface(clockSurface);
 
-        clockRect.x = 20;
-        clockRect.y = 20;
-        SDL_BlitSurface(b1.render(), NULL, surface, &clockRect);
+        clockRect.x = 10;
+
+        SDL_BlitSurface(c1.render(), NULL, surface, &clockRect);
 
         SDL_UpdateWindowSurface(window);
 

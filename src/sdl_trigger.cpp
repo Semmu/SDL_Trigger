@@ -60,25 +60,6 @@ namespace Trigger {
         triggers.push_back(trigger);
     }
 
-    std::vector<KeyState>& referenceOf(std::vector<SDL_Keycode> keys) {
-        for(auto& trigger : triggers) {
-            if (trigger.combination.keys.size() == keys.size()) {
-                bool matches = true;
-                for (size_t i = 0; i < keys.size(); i++) {
-                    if (trigger.combination.keys[i].key != keys[i]) {
-                        matches = false;
-                    }
-                }
-
-                if (matches) {
-                    return trigger.combination.keys;
-                }
-            }
-        }
-
-        throw std::runtime_error("Trigger::referenceOf error, combination not found!");
-    }
-
     void processEvent(SDL_Event& e) {
         SDL_Keycode key = e.key.keysym.sym;
 

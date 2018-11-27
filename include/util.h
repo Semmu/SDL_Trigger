@@ -21,7 +21,7 @@ struct Surface {
     static int colorFor(int r, int g, int b);
     static int colorFor(SDL_Color color);
 
-    static SDL_Surface* ofText(const char* string, SDL_Color color);
+    static SDL_Surface* ofText(const char* string, SDL_Color color = {150, 150, 150});
 };
 
 struct KeyPressLog {
