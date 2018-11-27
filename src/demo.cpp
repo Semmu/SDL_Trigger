@@ -52,7 +52,10 @@ int main(int argc, char const *argv[])
         running = false;
     });
 
-    Trigger::on({SDLK_RCTRL, SDLK_a}, [](){
+    Trigger::on({SDLK_LCTRL, SDLK_LSHIFT, SDLK_r}, []() {
+    });
+
+    Trigger::on({SDLK_SPACE}, []() {
     });
 
     Trigger::on({SDLK_UP}, [](){
@@ -67,7 +70,8 @@ int main(int argc, char const *argv[])
     Trigger::on({SDLK_LEFT}, []() {
     });
 
-    combinations.push_back(Combination("Select All", {SDLK_RCTRL, SDLK_a}));
+    combinations.push_back(Combination("Randomize Map", {SDLK_LCTRL, SDLK_LSHIFT, SDLK_r}));
+    combinations.push_back(Combination("Drop Coin", {SDLK_SPACE}));
     combinations.push_back(Combination("Move Up", {SDLK_UP}));
     combinations.push_back(Combination("Move Right", {SDLK_RIGHT}));
     combinations.push_back(Combination("Move Down", {SDLK_DOWN}));
@@ -129,6 +133,13 @@ int main(int argc, char const *argv[])
         clockRect.y = 10;
         SDL_BlitSurface(clockSurface, NULL, surface, &clockRect);
         SDL_FreeSurface(clockSurface);
+
+        SDL_Surface *githubSurface = Surface::ofText("https://github.com/Semmu/SDL_Trigger");
+        SDL_Rect githubRect;
+        githubRect.x = WIDTH - githubSurface->w - 10;
+        githubRect.y = HEIGHT - githubSurface->h - 10;
+        SDL_BlitSurface(githubSurface, NULL, surface, &githubRect);
+        SDL_FreeSurface(githubSurface);
 
         SDL_Rect combinationRect;
         combinationRect.x = 10;
