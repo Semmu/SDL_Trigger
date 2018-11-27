@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace Trigger {
-    using Action = std::function<void(void)>;
+    using Callback = std::function<void(void)>;
 
     struct KeyState {
         SDL_Keycode key;
@@ -25,12 +25,12 @@ namespace Trigger {
 
     struct Trigger {
         KeyCombination combination;
-        Action action;
+        Callback callback;
     };
     extern std::vector<Trigger> triggers;
 
-    void on(SDL_Keycode key, Action action);
-    void on(std::vector<SDL_Keycode> keys, Action action);
+    void on(SDL_Keycode key, Callback callback);
+    void on(std::vector<SDL_Keycode> keys, Callback callback);
 
     void processEvent(SDL_Event &e);
 } // namespace Trigger

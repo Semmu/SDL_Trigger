@@ -47,11 +47,11 @@ namespace Trigger {
         return true;
     }
 
-    void on(SDL_Keycode key, Action action) {
-        on(std::vector<SDL_Keycode>{key}, action);
+    void on(SDL_Keycode key, Callback callback) {
+        on(std::vector<SDL_Keycode>{key}, callback);
     }
 
-    void on(std::vector<SDL_Keycode> keys, Action action) {
+    void on(std::vector<SDL_Keycode> keys, Callback callback) {
         KeyCombination keyCombination;
         for(const auto key : keys) {
             keyCombination.keys.push_back({key, false});
@@ -59,7 +59,7 @@ namespace Trigger {
 
         Trigger trigger;
         trigger.combination = keyCombination;
-        trigger.action = action;
+        trigger.callback = callback;
 
         triggers.push_back(trigger);
     }
@@ -78,7 +78,7 @@ namespace Trigger {
 
             for (auto& trigger : triggers) {
                 if (trigger.combination.isFulfilled()) {
-                    trigger.action();
+                    trigger.callback();
                 }
             }
         } else if (e.type == SDL_KEYUP) {
