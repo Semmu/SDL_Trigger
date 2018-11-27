@@ -54,7 +54,6 @@ int main(int argc, char const *argv[])
     });
 
     Trigger::on({SDLK_LCTRL, SDLK_LSHIFT, SDLK_r}, []() {
-        std::cout << "GENERATE" << std::endl;
         Maze.generate();
     });
 
