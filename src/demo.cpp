@@ -57,7 +57,7 @@ int main(int argc, char const *argv[])
         Maze.generate();
     });
 
-    Trigger::on({SDLK_RCTRL, SDLK_SPACE}, []() {
+    Trigger::on({SDLK_LCTRL, SDLK_SPACE}, []() {
         Maze.drop(Maze_t::Tile::COIN);
     });
 
@@ -78,7 +78,7 @@ int main(int argc, char const *argv[])
     });
 
     combinations.push_back(Combination("Randomize Map", {SDLK_LCTRL, SDLK_LSHIFT, SDLK_r}));
-    combinations.push_back(Combination("Drop Coin", {SDLK_RCTRL, SDLK_SPACE}));
+    combinations.push_back(Combination("Drop Coin", {SDLK_LCTRL, SDLK_SPACE}));
     combinations.push_back(Combination("Move Up", {SDLK_UP}));
     combinations.push_back(Combination("Move Right", {SDLK_RIGHT}));
     combinations.push_back(Combination("Move Down", {SDLK_DOWN}));
