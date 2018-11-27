@@ -7,7 +7,7 @@ default: bin/demo
 build/%.o: src/%.cpp
 	$(CC) $(CFLAGS) -I ./include -c -o $@ $<
 
-bin/demo: build/sdl_trigger.o build/visual_demo.o build/util.o
+bin/demo: build/sdl_trigger.o build/demo.o build/util.o
 	$(CC) $^ $(LFLAGS) -o bin/demo
 
 run: bin/demo

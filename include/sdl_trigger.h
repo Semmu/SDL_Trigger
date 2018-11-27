@@ -3,6 +3,7 @@
 
 #include "SDL2/SDL.h"
 #include <functional>
+#include <vector>
 
 namespace Trigger {
     using Action = std::function<void(void)>;
@@ -12,8 +13,25 @@ namespace Trigger {
         bool isDown;
     };
 
-    std::ostream &operator<<(std::ostream &stream, const KeyState &keyState);
-    
+    struct KeyCombination {
+        std::vector<KeyState> keys;
+
+        bool hasKey(SDL_Keycode key) const;
+        void markKeyDown(SDL_Keycode key);
+        void markKeyUp(SDL_Keycode key);
+        void reset();
+        bool isFulfilled() const;
+    };
+
+    struct Trigger {
+        KeyCombination combination;
+        Action action;
+    };
+    extern std::vector<Trigger> triggers;
+
+    void on(std::vector<SDL_Keycode> keys, Action action);
+    std::vector<KeyState> &referenceOf(std::vector<SDL_Keycode> keys);
+    void processEvent(SDL_Event &e);
 } // namespace Trigger
 
 #endif /* SDL_TRIGGER_H */
