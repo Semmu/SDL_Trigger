@@ -47,6 +47,10 @@ namespace Trigger {
         return true;
     }
 
+    void on(SDL_Keycode key, Action action) {
+        on(std::vector<SDL_Keycode>{key}, action);
+    }
+
     void on(std::vector<SDL_Keycode> keys, Action action) {
         KeyCombination keyCombination;
         for(const auto key : keys) {

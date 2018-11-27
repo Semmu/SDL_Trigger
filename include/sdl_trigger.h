@@ -29,8 +29,9 @@ namespace Trigger {
     };
     extern std::vector<Trigger> triggers;
 
+    void on(SDL_Keycode key, Action action);
     void on(std::vector<SDL_Keycode> keys, Action action);
-    std::vector<KeyState> &referenceOf(std::vector<SDL_Keycode> keys);
+
     void processEvent(SDL_Event &e);
 } // namespace Trigger
 

@@ -45,11 +45,11 @@ int main(int argc, char const *argv[])
     SDL_Event e;
     bool running = true;
 
-    Trigger::on({SDLK_q}, [&running]() {
+    Trigger::on(SDLK_q, [&running]() {
         running = false;
     });
 
-    Trigger::on({SDLK_ESCAPE}, [&running]() {
+    Trigger::on(SDLK_ESCAPE, [&running]() {
         running = false;
     });
 
@@ -61,19 +61,19 @@ int main(int argc, char const *argv[])
         Maze.drop(Maze_t::Tile::COIN);
     });
 
-    Trigger::on({SDLK_UP}, []() {
+    Trigger::on(SDLK_UP, []() {
         Maze.moveUp();
     });
 
-    Trigger::on({SDLK_RIGHT}, []() {
+    Trigger::on(SDLK_RIGHT, []() {
         Maze.moveRight();
     });
 
-    Trigger::on({SDLK_DOWN}, []() {
+    Trigger::on(SDLK_DOWN, []() {
         Maze.moveDown();
     });
 
-    Trigger::on({SDLK_LEFT}, []() {
+    Trigger::on(SDLK_LEFT, []() {
         Maze.moveLeft();
     });
 
