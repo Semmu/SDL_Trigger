@@ -35,12 +35,22 @@ int main(int argc, char const *argv[])
         fatal(TTF_GetError());
     }
 
+    Surface::setFont(font);
+
     SDL_ShowCursor(SDL_DISABLE);
     SDL_WarpMouseInWindow(window, WIDTH / 2, HEIGHT / 2);
     SDL_RaiseWindow(window);
 
     SDL_Event e;
     bool running = true;
+
+    Trigger::on({SDLK_q}, [&running]() {
+        running = false;
+    });
+
+    Trigger::on({SDLK_ESCAPE}, [&running]() {
+        running = false;
+    });
 
     while (running)
     {
@@ -53,11 +63,48 @@ int main(int argc, char const *argv[])
                     running = false;
                 } break;
 
+                case SDL_KEYDOWN: {
+                    if (e.key.repeat == 0) {
+                        KeyPressLog::insert(currentTime() + " [DOWN] " + SDL_GetKeyName(e.key.keysym.sym));
+                    }
+                } break;
+
+                case SDL_KEYUP: {
+                    KeyPressLog::insert(currentTime() + " [ UP ] " + SDL_GetKeyName(e.key.keysym.sym));
+                }
+
                 default: break;
             }
         }
 
         SDL_FillRect(surface, NULL, Surface::colorFor(0, 0, 0));
+
+        int recordY = HEIGHT;
+        int i = 0;
+        for (auto& record : KeyPressLog::records) {
+
+            recordY -= 20;
+
+            Uint8 color = 150 / KeyPressLog::maxRecords * (KeyPressLog::maxRecords - i);
+            SDL_Surface* recordSurface = Surface::ofText(record.c_str(), {color, color, color});
+
+            SDL_Rect recordRect;
+            recordRect.x = 10;
+            recordRect.y = recordY;
+
+            SDL_BlitSurface(recordSurface, NULL, surface, &recordRect);
+            SDL_FreeSurface(recordSurface);
+
+            i++;
+        }
+
+        SDL_Surface *clockSurface = Surface::ofText(currentTime().c_str(), {150, 150, 150});
+        SDL_Rect clockRect;
+        clockRect.x = WIDTH - clockSurface->w - 10;
+        clockRect.y = 10;
+        SDL_BlitSurface(clockSurface, NULL, surface, &clockRect);
+        SDL_FreeSurface(clockSurface);
+
         SDL_UpdateWindowSurface(window);
 
         SDL_Delay(1);

@@ -23,6 +23,10 @@ void Surface::setFormat(SDL_PixelFormat* newFormat) {
     format = newFormat;
 }
 
+void Surface::setFont(TTF_Font* newFont) {
+    font = newFont;
+}
+
 SDL_Surface* Surface::create(int width, int height) {
     if (format == nullptr) {
         throw std::runtime_error("Surface::format not set!");
@@ -51,4 +55,21 @@ int Surface::colorFor(SDL_Color color) {
     return SDL_MapRGB(format, color.r, color.g, color.b);
 }
 
+SDL_Surface* Surface::ofText(const char* string, SDL_Color color) {
+    if (font == nullptr) {
+        throw std::runtime_error("Surface::font not set!");
+    }
+
+    return TTF_RenderText_Solid(font, string, color);
+}
+
 SDL_PixelFormat* Surface::format = NULL;
+TTF_Font* Surface::font = NULL;
+
+std::list<std::string> KeyPressLog::records;
+int KeyPressLog::maxRecords = 20;
+
+void KeyPressLog::insert(std::string record) {
+    records.push_front(record);
+    records.resize(maxRecords);
+}
