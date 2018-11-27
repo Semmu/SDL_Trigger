@@ -29,8 +29,11 @@ struct Surface {
 struct KeyPressLog {
     static std::list<std::string> records;
     static int maxRecords;
+    static Uint32 SCROLLS_PER_SECOND;
+    static Uint32 lastAutoScroll;
 
     static void insert(std::string record);
+    static void autoScroll();
 };
 
 

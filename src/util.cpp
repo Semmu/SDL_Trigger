@@ -72,9 +72,18 @@ TTF_Font* Surface::font = NULL;
 int Surface::COLOR_TRANSPARENT = 0;
 
 std::list<std::string> KeyPressLog::records;
-int KeyPressLog::maxRecords = 15;
+int KeyPressLog::maxRecords = 25;
+Uint32 KeyPressLog::lastAutoScroll = 0;
+Uint32 KeyPressLog::SCROLLS_PER_SECOND = 5;
 
 void KeyPressLog::insert(std::string record) {
     records.push_front(record);
     records.resize(maxRecords);
+}
+
+void KeyPressLog::autoScroll() {
+    if (lastAutoScroll + 1000 / SCROLLS_PER_SECOND < SDL_GetTicks()) {
+        insert("");
+        lastAutoScroll = SDL_GetTicks();
+    }
 }

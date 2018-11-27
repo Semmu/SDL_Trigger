@@ -73,7 +73,7 @@ int main(int argc, char const *argv[])
     combinations.push_back(Combination("Move Down", {SDLK_DOWN}));
     combinations.push_back(Combination("Move Left", {SDLK_LEFT}));
     combinations.push_back(Combination("Close This Demo", {SDLK_q}));
-    combinations.push_back(Combination("Close This Demo", {SDLK_ESCAPE}));
+    combinations.push_back(Combination("Also Close This Demo", {SDLK_ESCAPE}));
 
     while (running)
     {
@@ -99,6 +99,8 @@ int main(int argc, char const *argv[])
                 default: break;
             }
         }
+
+        KeyPressLog::autoScroll();
 
         SDL_FillRect(surface, NULL, Surface::colorFor(0, 0, 0));
 
