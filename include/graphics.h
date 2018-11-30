@@ -11,9 +11,9 @@ struct Button {
     Trigger::KeyState* keyState = NULL;
     SDL_Surface* surface = NULL;
 
-    const int BUTTON_PADDING = 10;
-    const int BUTTON_HEIGHT = 10;
-    const int BUTTON_DEPTH = 7;
+    const int BUTTON_PADDING = 7;
+    const int BUTTON_HEIGHT = 7;
+    const int BUTTON_DEPTH = 4;
 
     Button(std::vector<SDL_Keycode> keys, size_t index);
 
@@ -30,7 +30,7 @@ struct Combination {
     SDL_Surface *surface;
 
     const int DESCRIPTION_WIDTH = 150;
-    const int BUTTON_DISTANCE = 10;
+    const int BUTTON_DISTANCE = 7;
 
     Combination(std::string description, std::vector<SDL_Keycode> keys);
     SDL_Surface* render();

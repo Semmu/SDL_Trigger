@@ -13,9 +13,8 @@ struct Maze_t {
     int moveX, moveY;
 
     static const int MAP_SIZE = 10;
-    static const int TILE_SIZE = 30;
+    static const int TILE_SIZE = 20;
     static const int RANDOM_WALLS = 10;
-
 
     enum Tile {
         EMPTY,

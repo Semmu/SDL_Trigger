@@ -100,9 +100,12 @@ int main(int argc, char const *argv[])
     combinations.push_back(Combination("Move Right", {SDLK_RIGHT}));
     combinations.push_back(Combination("Move Down", {SDLK_DOWN}));
     combinations.push_back(Combination("Move Left", {SDLK_LEFT}));
-    combinations.push_back(Combination("Extra Keybindings", {SDLK_SPACE}));
+
+    combinations.push_back(Combination("Toggle Advanced", {SDLK_SPACE}));
+
     combinations.push_back(Combination("Randomize Map", {SDLK_LCTRL, SDLK_LSHIFT, SDLK_r}));
     combinations.push_back(Combination("Drop Coin", {SDLK_LCTRL, SDLK_RSHIFT, SDLK_c}));
+
     combinations.push_back(Combination("Close This Demo", {SDLK_q}));
     combinations.push_back(Combination("Also Close This Demo", {SDLK_ESCAPE}));
 
@@ -172,7 +175,7 @@ int main(int argc, char const *argv[])
 
         SDL_Surface* mazeSurface = Maze.render();
         SDL_Rect mazeRect;
-        mazeRect.y = HEIGHT - mazeSurface->h - 50;
+        mazeRect.y = (HEIGHT - mazeSurface->h) / 2;
         mazeRect.x = WIDTH - mazeSurface->w - 30;
         SDL_BlitSurface(mazeSurface, NULL, surface, &mazeRect);
 
