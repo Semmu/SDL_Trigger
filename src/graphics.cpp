@@ -1,3 +1,4 @@
+#include "sdl_trigger.h"
 #include "graphics.h"
 #include "util.h"
 
@@ -19,18 +20,21 @@ Button Button::forCombinationKey(std::vector<SDL_Keycode> keys, size_t index) {
 }
 
 void Button::findKeyState() {
-    for(auto& trigger : Trigger::triggers) {
-        if (trigger.combination.keys.size() == keys.size()) {
-            bool matches = true;
-            for (size_t i = 0; i < keys.size(); i++) {
-                if (trigger.combination.keys[i].key != keys[i]) {
-                    matches = false;
+    for(auto& group : Trigger::groups) {
+        for(auto& trigger : group->triggers) {
+            if (trigger.combination.keys.size() == keys.size()) {
+                bool matches = true;
+                for (size_t i = 0; i < keys.size(); i++) {
+                    if (trigger.combination.keys[i].key != keys[i]) {
+                        matches = false;
+                    }
                 }
-            }
 
-            if (matches) {
-                keyState = &trigger.combination.keys[index];
-                return;
+                if (matches) {
+                    keyState = &trigger.combination.keys[index];
+                    isEnabled = group->isEnabled;
+                    return;
+                }
             }
         }
     }
@@ -42,7 +46,8 @@ SDL_Surface* Button::render() {
 
     findKeyState();
 
-    SDL_Surface* labelSurface = Surface::ofText(SDL_GetKeyName(keyState->key), {90, 120, 50});
+    SDL_Color labelColor = isEnabled ? SDL_Color{90, 120, 50} : SDL_Color{90, 90, 90};
+    SDL_Surface* labelSurface = Surface::ofText(SDL_GetKeyName(keyState->key), labelColor);
     if (labelSurface == NULL) {
         throw std::runtime_error("Could not render label!");
     }
@@ -54,26 +59,29 @@ SDL_Surface* Button::render() {
     surface = Surface::create(labelSurface->w + 2 * BUTTON_PADDING,
                               labelSurface->h + 2 * BUTTON_PADDING + BUTTON_HEIGHT);
 
+    int facingSideColor = isEnabled ? Surface::colorFor(120, 150, 70) : Surface::colorFor(100, 100, 100);
     SDL_Rect facingSideRect;
     facingSideRect.w = surfaceWitdh;
     facingSideRect.h = surfaceHeight;
     facingSideRect.x = 0;
     facingSideRect.y = (keyState->isDown ? BUTTON_DEPTH : 0);
-    SDL_FillRect(surface, &facingSideRect, Surface::colorFor(120, 150, 70));
+    SDL_FillRect(surface, &facingSideRect, facingSideColor);
 
+    int outlineColor = isEnabled ? Surface::colorFor(230, 250, 180) : Surface::colorFor(180, 180, 180);
     SDL_Rect outlineRect;
     outlineRect.w = surfaceWitdh - 2;
     outlineRect.h = labelSurface->h + 2 * BUTTON_PADDING - 2;
     outlineRect.x = 1;
     outlineRect.y = (keyState->isDown ? BUTTON_DEPTH : 0) + 1;
-    SDL_FillRect(surface, &outlineRect, Surface::colorFor(230, 250, 180));
+    SDL_FillRect(surface, &outlineRect, outlineColor);
 
+    int topColor = isEnabled ? Surface::colorFor(170, 210, 100) : Surface::colorFor(150, 150, 150);
     SDL_Rect topRect;
     topRect.w = surfaceWitdh - 4;
     topRect.h = surfaceHeight - BUTTON_HEIGHT - 4;
     topRect.x = 2;
     topRect.y = (keyState->isDown ? BUTTON_DEPTH : 0) + 2;
-    SDL_FillRect(surface, &topRect, Surface::colorFor(170, 210, 100));
+    SDL_FillRect(surface, &topRect, topColor);
 
     SDL_Rect labelRect;
     labelRect.x = BUTTON_PADDING;

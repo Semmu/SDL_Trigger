@@ -57,23 +57,25 @@ int main(int argc, char const *argv[])
         Maze.generate();
     });
 
+    Trigger::Group moveControls;
+
     Trigger::on({SDLK_LCTRL, SDLK_SPACE}, []() {
         Maze.drop(Maze_t::Tile::COIN);
     });
 
-    Trigger::on(SDLK_UP, []() {
+    moveControls.on(SDLK_UP, []() {
         Maze.moveUp();
     });
 
-    Trigger::on(SDLK_RIGHT, []() {
+    moveControls.on(SDLK_RIGHT, []() {
         Maze.moveRight();
     });
 
-    Trigger::on(SDLK_DOWN, []() {
+    moveControls.on(SDLK_DOWN, []() {
         Maze.moveDown();
     });
 
-    Trigger::on(SDLK_LEFT, []() {
+    moveControls.on(SDLK_LEFT, []() {
         Maze.moveLeft();
     });
 
@@ -87,6 +89,14 @@ int main(int argc, char const *argv[])
     combinations.push_back(Combination("Also Close This Demo", {SDLK_ESCAPE}));
 
     Maze.generate();
+
+    Trigger::on(SDLK_t, [&]() {
+        if (moveControls.isEnabled) {
+            moveControls.disable();
+        } else {
+            moveControls.enable();
+        }
+    });
 
     while (running)
     {

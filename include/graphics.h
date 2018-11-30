@@ -6,6 +6,7 @@
 struct Button {
     std::vector<SDL_Keycode> keys;
     size_t index;
+    bool isEnabled;
 
     Trigger::KeyState* keyState = NULL;
     SDL_Surface* surface = NULL;
