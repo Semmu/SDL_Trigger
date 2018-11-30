@@ -75,6 +75,14 @@ namespace Trigger {
         }
     }
 
+    void Group::toggle() {
+        if (isEnabled) {
+            disable();
+        } else {
+            enable();
+        }
+    }
+
     void Group::on(SDL_Keycode key, Callback callback) {
         on(Keycodes{key}, callback);
     }

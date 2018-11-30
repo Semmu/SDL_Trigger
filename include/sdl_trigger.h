@@ -40,6 +40,7 @@ namespace Trigger {
 
         void enable();
         void disable();
+        void toggle();
 
         void on(SDL_Keycode key, Callback callback);
         void on(Keycodes keys, Callback callback);

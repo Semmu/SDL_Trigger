@@ -91,11 +91,7 @@ int main(int argc, char const *argv[])
     Maze.generate();
 
     Trigger::on(SDLK_t, [&]() {
-        if (moveControls.isEnabled) {
-            moveControls.disable();
-        } else {
-            moveControls.enable();
-        }
+        moveControls.toggle();
     });
 
     while (running)
