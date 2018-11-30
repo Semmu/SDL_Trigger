@@ -1,9 +1,11 @@
 #include "sdl_trigger.h"
 #include <iostream>
+#include <algorithm>
 
 namespace Trigger {
 
-    std::vector<Trigger> triggers;
+    std::vector<Group*> groups;
+    Group globalGroup;
 
     bool KeyCombination::hasKey(SDL_Keycode key) const {
         for(size_t i = 0; i < keys.size(); i++) {
@@ -47,24 +49,41 @@ namespace Trigger {
         return true;
     }
 
-    void on(SDL_Keycode key, Callback callback) {
-        on(std::vector<SDL_Keycode>{key}, callback);
-    }
-
-    void on(std::vector<SDL_Keycode> keys, Callback callback) {
-        KeyCombination keyCombination;
+    Trigger::Trigger(Keycodes keys, Callback callback) : callback{callback} {
         for(const auto key : keys) {
-            keyCombination.keys.push_back({key, false});
+            combination.keys.push_back({key, false});
         }
-
-        Trigger trigger;
-        trigger.combination = keyCombination;
-        trigger.callback = callback;
-
-        triggers.push_back(trigger);
     }
 
-    void processEvent(SDL_Event& e) {
+    Group::Group() : triggers{}, isEnabled{true} {
+        groups.push_back(this);
+    }
+
+    Group::~Group() {
+        groups.erase(std::remove(groups.begin(), groups.end(), this));
+    }
+
+    void Group::enable() {
+        isEnabled = true;
+    }
+
+    void Group::disable() {
+        isEnabled = false;
+
+        for (auto& trigger : triggers) {
+            trigger.combination.reset();
+        }
+    }
+
+    void Group::on(SDL_Keycode key, Callback callback) {
+        on(Keycodes{key}, callback);
+    }
+
+    void Group::on(Keycodes keys, Callback callback) {
+        triggers.push_back(Trigger(keys, callback));
+    }
+
+    void Group::processEvent(SDL_Event& e) {
         SDL_Keycode key = e.key.keysym.sym;
 
         if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
@@ -86,6 +105,22 @@ namespace Trigger {
                 if (trigger.combination.hasKey(key)) {
                     trigger.combination.markKeyUp(key);
                 }
+            }
+        }
+    }
+
+    void on(SDL_Keycode key, Callback callback) {
+        on(Keycodes{key}, callback);
+    }
+
+    void on(Keycodes keys, Callback callback) {
+        globalGroup.triggers.push_back(Trigger(keys, callback));
+    }
+
+    void processEvent(SDL_Event& e) {
+        for (auto& group : groups) {
+            if (group->isEnabled) {
+                group->processEvent(e);
             }
         }
     }
