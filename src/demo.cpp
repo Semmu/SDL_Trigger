@@ -45,23 +45,10 @@ int main(int argc, char const *argv[])
     SDL_Event e;
     bool running = true;
 
-    Trigger::on(SDLK_q, [&running]() {
-        running = false;
-    });
 
-    Trigger::on(SDLK_ESCAPE, [&running]() {
-        running = false;
-    });
-
-    Trigger::on({SDLK_LCTRL, SDLK_LSHIFT, SDLK_r}, []() {
-        Maze.generate();
-    });
+    // CHARACTER MOVEMENT KEYBINDINGS
 
     Trigger::Group moveControls;
-
-    Trigger::on({SDLK_LCTRL, SDLK_SPACE}, []() {
-        Maze.drop(Maze_t::Tile::COIN);
-    });
 
     moveControls.on(SDLK_UP, []() {
         Maze.moveUp();
@@ -79,20 +66,47 @@ int main(int argc, char const *argv[])
         Maze.moveLeft();
     });
 
-    combinations.push_back(Combination("Randomize Map", {SDLK_LCTRL, SDLK_LSHIFT, SDLK_r}));
-    combinations.push_back(Combination("Drop Coin", {SDLK_LCTRL, SDLK_SPACE}));
+
+    //  MAZE MANIPULATION KEYBINDINGS
+
+    Trigger::Group mazeManipulations;
+
+    mazeManipulations.on({SDLK_LCTRL, SDLK_LSHIFT, SDLK_r}, []() {
+        Maze.generate();
+    });
+
+    mazeManipulations.on({SDLK_LCTRL, SDLK_RSHIFT, SDLK_c}, []() {
+        Maze.drop(Maze_t::Tile::COIN);
+    });
+
+    mazeManipulations.disable(); // should be enabled manually
+
+
+    // GLOBAL KEYBINDINGS
+
+    Trigger::on(SDLK_SPACE, [&mazeManipulations]() {
+        mazeManipulations.toggle();
+    });
+
+    Trigger::on(SDLK_q, [&running]() {
+        running = false;
+    });
+
+    Trigger::on(SDLK_ESCAPE, [&running]() {
+        running = false;
+    });
+
     combinations.push_back(Combination("Move Up", {SDLK_UP}));
     combinations.push_back(Combination("Move Right", {SDLK_RIGHT}));
     combinations.push_back(Combination("Move Down", {SDLK_DOWN}));
     combinations.push_back(Combination("Move Left", {SDLK_LEFT}));
+    combinations.push_back(Combination("Extra Keybindings", {SDLK_SPACE}));
+    combinations.push_back(Combination("Randomize Map", {SDLK_LCTRL, SDLK_LSHIFT, SDLK_r}));
+    combinations.push_back(Combination("Drop Coin", {SDLK_LCTRL, SDLK_RSHIFT, SDLK_c}));
     combinations.push_back(Combination("Close This Demo", {SDLK_q}));
     combinations.push_back(Combination("Also Close This Demo", {SDLK_ESCAPE}));
 
     Maze.generate();
-
-    Trigger::on(SDLK_t, [&]() {
-        moveControls.toggle();
-    });
 
     while (running)
     {
