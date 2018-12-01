@@ -75,7 +75,7 @@ SDL_Surface* Button::render() {
     outlineRect.y = (keyState->isDown ? BUTTON_DEPTH : 0) + 1;
     SDL_FillRect(surface, &outlineRect, outlineColor);
 
-    int topColor = isEnabled ? Surface::colorFor(170, 210, 100) : Surface::colorFor(150, 150, 150);
+    int topColor = isEnabled ? (keyState->isDown ? outlineColor : Surface::colorFor(170, 210, 100)) : Surface::colorFor(150, 150, 150);
     SDL_Rect topRect;
     topRect.w = surfaceWitdh - 4;
     topRect.h = surfaceHeight - BUTTON_HEIGHT - 4;
