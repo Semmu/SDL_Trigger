@@ -254,10 +254,6 @@ The visual demo provided (gif above) shows the behaviour of the library when pre
 
 ## TODO
 
- * **Key combination grouping to enable/disable triggers.**
- 
-   This should make it possible to use different keybindings in different application states (for example in the main menu, in the game, etc.) You could define multiple trigger groups for your application states and enable/disable them when needed.
- 
  * **Handling of generic modifier keys without specifying which side (left or right) it is on.**
  
    Right now, since SDL_Trigger is based on the built-in `SDL_Keycode` type, there is no way to define a generic keyboard shortcut with for example simply the Control button, no matter which side it is on. If you want to support both Control buttons, you need to define a trigger with `SDLK_LCTRL` and `SDLK_RCTRL` as well. It sucks and SDL_Trigger should somehow define new types or values for these modifier keys and handle it internally.
