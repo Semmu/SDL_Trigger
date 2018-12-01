@@ -140,11 +140,16 @@ int main(int argc, char const *argv[])
 
         SDL_FillRect(surface, NULL, Surface::colorFor(0, 0, 0));
 
-        int recordY = HEIGHT;
+        const int recordLineHeight = 20;
+        const int msBetweenAutoscrolls = 1000 / KeyPressLog::SCROLLS_PER_SECOND; // 200
+        const int msSinceLastAutoScroll = (SDL_GetTicks() % 1000) % msBetweenAutoscrolls;
+        const int translation = double(msSinceLastAutoScroll) / msBetweenAutoscrolls * recordLineHeight;
+
+        int recordY = HEIGHT - translation;
         int i = 0;
         for (auto& record : KeyPressLog::records) {
 
-            recordY -= 20;
+            recordY -= recordLineHeight;
 
             Uint8 color = 100 / KeyPressLog::maxRecords * (KeyPressLog::maxRecords - i);
             SDL_Surface* recordSurface = Surface::ofText(record.c_str(), {color, color, color});
@@ -197,7 +202,7 @@ int main(int argc, char const *argv[])
 
         SDL_UpdateWindowSurface(window);
 
-        SDL_Delay(1);
+        SDL_Delay(10);
     }
 
     SDL_DestroyWindow(window);

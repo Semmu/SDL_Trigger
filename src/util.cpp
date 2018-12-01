@@ -82,8 +82,8 @@ void KeyPressLog::insert(std::string record) {
 }
 
 void KeyPressLog::autoScroll() {
-    if (lastAutoScroll + 1000 / SCROLLS_PER_SECOND < SDL_GetTicks()) {
+    if (lastAutoScroll + (1000 / SCROLLS_PER_SECOND) < SDL_GetTicks()) {
         insert("");
-        lastAutoScroll = SDL_GetTicks();
+        lastAutoScroll += (1000 / SCROLLS_PER_SECOND);
     }
 }
